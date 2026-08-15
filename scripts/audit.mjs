@@ -18,9 +18,8 @@ export function detectRisk(pkgJson, readmeText) {
   if (writesOutsideHome) details.push('安装文档疑似写入 HOME 之外路径')
   const modifiesShell = SHELL_PATTERNS.some((re) => re.test(readmeText ?? ''))
   if (modifiesShell) details.push('安装文档疑似修改 shell 配置')
-  const risk = hasLifecycleScripts && (writesOutsideHome || modifiesShell) ? 'high'
-    : hasLifecycleScripts || writesOutsideHome || modifiesShell ? 'medium'
-    : 'low'
+  const dangerSignals = [hasLifecycleScripts, writesOutsideHome, modifiesShell].filter(Boolean).length
+  const risk = dangerSignals >= 2 ? 'high' : dangerSignals === 1 ? 'medium' : 'low'
   return { hasLifecycleScripts, writesOutsideHome, modifiesShell, risk, details }
 }
 
@@ -49,9 +48,8 @@ export async function auditRepo(repo, fetchImpl = fetch) {
       details.push(...r.details)
     }
   } catch { details.push('README 读取失败') }
-  const risk = hasLifecycleScripts && (writesOutsideHome || modifiesShell) ? 'high'
-    : hasLifecycleScripts || writesOutsideHome || modifiesShell ? 'medium'
-    : 'low'
+  const dangerSignals = [hasLifecycleScripts, writesOutsideHome, modifiesShell].filter(Boolean).length
+  const risk = dangerSignals >= 2 ? 'high' : dangerSignals === 1 ? 'medium' : 'low'
   return { hasLifecycleScripts, writesOutsideHome, modifiesShell, risk, details }
 }
 
