@@ -12,6 +12,9 @@
 
 - Node.js ≥ 22（使用内置 fetch 与 node:test）
 - **零外部 npm 依赖**：脚本只用 node: 内置模块；测试用 `node --test`
+- **Node ≥ 23 测试命令注意**：`node --test` 的位置参数按 glob 处理，裸目录（如 `tests/`）会
+  报 MODULE_NOT_FOUND。统一用 `node --test`（无参数，自动发现 `tests/` 下测试）或
+  `node --test tests/xxx.test.mjs`（单文件路径）。已实测（Node v24.9.0）两种形式均通过。
 - 仓库路径：`~/WorkingPlace/Coding/AI/find-dsh-plugins/`（git 已 init，已有设计文档 commit）
 - LICENSE：BSD-3-Clause（独立授权，代码全部自写）
 - **禁止 emoji 字符**（README/代码/提交信息均不得使用）
@@ -35,7 +38,7 @@
 
 **Interfaces:**
 - Consumes: 无
-- Produces: `npm test` 命令（运行 `node --test tests/`）；后续所有任务依赖此骨架
+- Produces: `npm test` 命令（运行 `node --test`，自动发现 `tests/`）；后续所有任务依赖此骨架
 
 - [ ] **Step 1: 创建 package.json**
 
@@ -47,7 +50,7 @@
   "type": "module",
   "description": "对话式查找 DSH 插件的增强版 skill：语义检索 × 四源聚合 × 安全审计",
   "scripts": {
-    "test": "node --test tests/"
+    "test": "node --test"
   },
   "engines": {
     "node": ">=22"
@@ -107,10 +110,10 @@ index.meta.json
 ```bash
 mkdir -p tests scripts references
 touch tests/.gitkeep
-node --test tests/
+node --test
 ```
 
-Expected: `# pass 0`（空测试目录通过），无报错。
+Expected: `ℹ pass 0`（空测试目录通过），exit 0，无报错。
 
 - [ ] **Step 5: Commit**
 
