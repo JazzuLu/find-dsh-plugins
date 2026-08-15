@@ -1,0 +1,3 @@
+{ "plugins": [
+  { "name": "dsh-live-stats", "owner": "zhu1090093659", "url": "https://github.com/zhu1090093659/dsh-web-ui", "category": "ui", "description": { "en": "Live token statistics.", "zh": "实时令牌统计。" }, "npm": "dsh-live-stats", "stars": 1416 }
+] }

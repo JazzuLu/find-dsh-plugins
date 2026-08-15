@@ -1,0 +1,3 @@
+{ "plugins": [
+  { "id": "dsh-ssh", "name": "dsh-ssh", "description": "SSH 远程运维面板：Web 终端、文件传输、端口转发。", "stars": 512, "topics": [], "install": "dsh plugin --profile web add dsh-ssh", "url": "https://www.dsh.so/plugins/dsh-ssh/" }
+] }
