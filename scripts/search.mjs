@@ -34,7 +34,10 @@ export function searchTopK(query, plugins, k = 30) {
   const fieldText = (p) => {
     const parts = []
     parts.push(...Array(Math.round(weights.name)).fill(p.name ?? ''))
-    parts.push(p.description ?? '')
+    const desc = typeof p.description === 'string'
+      ? p.description
+      : [p.description?.zh, p.description?.en].filter(Boolean).join(' ')
+    parts.push(desc)
     parts.push(...(p.categories ?? []).map((c) => c.replace(/[-_]/g, ' ')))
     parts.push(...(p.topics ?? []))
     return parts.join(' ')
@@ -50,4 +53,36 @@ export function searchTopK(query, plugins, k = 30) {
     .sort((a, b) => b.score - a.score)
     .slice(0, k)
   return scored
+}
+
+// ===== CLI 入口（Task 7）=====
+import { pathToFileURL } from 'node:url'
+import { buildIndex } from './build-index.mjs'
+
+async function main() {
+  const args = process.argv.slice(2)
+  const topFlag = args.indexOf('--top')
+  const top = topFlag >= 0 ? Number(args[topFlag + 1]) : 30
+  const asJson = args.includes('--json')
+  const query = args.find((a) => !a.startsWith('--'))
+  if (!query) {
+    console.error('用法: node scripts/search.mjs "<需求描述>" [--top N] [--json]')
+    process.exit(1)
+  }
+  const { index } = await buildIndex()
+  const hits = searchTopK(query, index.plugins, top)
+  if (asJson) {
+    console.log(JSON.stringify(hits.map((h) => ({ plugin: h.plugin, score: h.score }))))
+    return
+  }
+  console.log(`共 ${index.plugins.length} 个候选，命中 ${hits.length} 个（数据源状态: ${JSON.stringify(index.sources)}）`)
+  for (const h of hits) {
+    const p = h.plugin
+    console.log(`- ${p.name}  ★${p.stars}  [${p.evidence.level}]  ${p.repo}`)
+    console.log(`    ${p.description.zh || p.description.en || ''}`)
+  }
+}
+
+if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
+  await main()
 }

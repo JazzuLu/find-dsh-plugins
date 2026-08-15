@@ -30,3 +30,13 @@ test('searchTopK 按 k 截断且按分数降序', () => {
   assert.equal(top.length, 2)
   assert.ok(top[0].score >= top[1].score)
 })
+
+test('searchTopK 支持 description 为 {en,zh} 对象（索引形态）', () => {
+  const plugins = [
+    { id: 'pet', name: 'dsh-pet', description: { zh: 'DSH Web UI 桌面宠物：精灵图动画', en: 'Desktop pet' }, categories: [], topics: [] },
+    { id: 'board', name: 'dsh-task-board', description: { zh: '任务看板', en: 'Task board' }, categories: [], topics: [] },
+  ]
+  const top = searchTopK('桌面宠物', plugins, 1)
+  assert.equal(top.length, 1)
+  assert.equal(top[0].plugin.id, 'pet')
+})
