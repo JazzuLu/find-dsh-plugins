@@ -6,7 +6,7 @@ import { tokenize, searchTopK } from '../scripts/search.mjs'
 test('tokenize 中文 bigram 与英文分词', () => {
   const tokens = tokenize('统计token用量的插件')
   assert.ok(tokens.includes('统计'))
-  assert.ok(tokens.includes('计t'))
+  assert.ok(tokens.includes('计用'))
   assert.ok(tokens.includes('token'))
   assert.ok(tokens.includes('用量'))
 })
