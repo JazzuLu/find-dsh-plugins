@@ -141,3 +141,95 @@ export function isLayerFresh(meta, layer, now = Date.now()) {
 export function ensureCacheDir() {
   mkdirSync(CACHE_DIR, { recursive: true })
 }
+
+// ===== 四源拉取与 CLI（Task 6）=====
+import { readFileSync, writeFileSync } from 'node:fs'
+import { pathToFileURL } from 'node:url'
+
+export async function fetchSource(name, url, parse, fetchImpl = fetch) {
+  try {
+    const res = await fetchImpl(url, { signal: AbortSignal.timeout(25_000), headers: { 'user-agent': 'find-dsh-plugins' } })
+    if (!res.ok) return { ok: false, count: 0, entries: [], error: `HTTP ${res.status}` }
+    const data = await res.json()
+    const entries = await parse(data)
+    return { ok: true, count: entries.length, entries }
+  } catch (err) {
+    return { ok: false, count: 0, entries: [], error: String(err.message ?? err) }
+  }
+}
+
+const GITHUB_TOPIC_QUERY = 'topic:dsh-plugin is:public archived:false'
+
+async function fetchGithubTopic(pages) {
+  const all = []
+  for (let page = 1; page <= pages; page += 1) {
+    const url = new URL('https://api.github.com/search/repositories')
+    url.searchParams.set('q', GITHUB_TOPIC_QUERY)
+    url.searchParams.set('sort', 'updated')
+    url.searchParams.set('order', 'desc')
+    url.searchParams.set('per_page', '100')
+    url.searchParams.set('page', String(page))
+    const r = await fetchSource('github', url.toString(), (d) => d.items ?? [], fetch)
+    if (!r.ok) break
+    all.push(...r.entries)
+  }
+  return all.map(normalizeGithub)
+}
+
+export async function buildIndex(opts = {}) {
+  const { fetchImpl = fetch, now = Date.now() } = opts
+  const meta = readMeta() ?? { layers: {} }
+  const sources = { lanshu: { ok: true }, awesome: { ok: true }, dshso: { ok: true }, githubTopic: { ok: true } }
+  const entries = []
+  const curatedFresh = isLayerFresh(meta, 'curated', now)
+  if (curatedFresh) {
+    const cached = readIndex()
+    if (cached) return { index: cached, meta, cached: true }
+  }
+  const curated = await Promise.all([
+    fetchSource('lanshu', 'https://dsh.lanshuagent.com/api/plugins', (d) => d.plugins.map(normalizeLanshu), fetchImpl),
+    fetchSource('awesome', 'https://awesome-dsh-plugin.com/plugins.json', (d) => d.plugins.map(normalizeAwesome), fetchImpl),
+    fetchSource('dshso', 'https://www.dsh.so/plugins-index.json', (d) => d.plugins.map(normalizeDshso), fetchImpl),
+  ])
+  const CURATED_NAMES = ['lanshu', 'awesome', 'dshso']
+  for (let i = 0; i < curated.length; i += 1) {
+    const r = curated[i]
+    sources[CURATED_NAMES[i]] = { ok: r.ok }
+    if (r.ok) entries.push(...r.entries)
+  }
+  const githubFull = !isLayerFresh(meta, 'githubFull', now)
+  const githubIncremental = !isLayerFresh(meta, 'githubIncremental', now)
+  if (githubIncremental || githubFull) {
+    const gh = await fetchGithubTopic(githubFull ? 10 : 2)
+    entries.push(...gh)
+    if (githubFull) meta.layers.githubFull = { at: now }
+    meta.layers.githubIncremental = { at: now }
+  }
+  const plugins = mergePlugins(entries)
+  const index = { schemaVersion: 1, generatedAt: new Date(now).toISOString(), sources, plugins }
+  meta.layers.curated = { at: now }
+  writeIndex(index, meta)
+  return { index, meta, cached: false }
+}
+
+function readIndex() {
+  try { return JSON.parse(readFileSync(INDEX_PATH, 'utf8')) } catch { return null }
+}
+function readMeta() {
+  try { return JSON.parse(readFileSync(META_PATH, 'utf8')) } catch { return null }
+}
+function writeIndex(index, meta) {
+  ensureCacheDir()
+  writeFileSync(INDEX_PATH, JSON.stringify(index))
+  writeFileSync(META_PATH, JSON.stringify(meta))
+}
+
+// CLI 入口
+if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
+  const args = process.argv.slice(2)
+  const { index, meta } = await buildIndex()
+  if (!args.includes('--quiet')) {
+    console.log(`索引生成完成: ${index.plugins.length} 个插件`)
+    console.log(`数据源状态: ${JSON.stringify(index.sources)}`)
+  }
+}
