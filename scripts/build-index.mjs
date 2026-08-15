@@ -116,3 +116,28 @@ export function mergePlugins(entries) {
   }))
   return plugins
 }
+
+// ===== 分层新鲜度与缓存（Task 4）=====
+import { mkdirSync } from 'node:fs'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
+export const CACHE_DIR = join(__dirname, '..', '.cache')
+export const INDEX_PATH = join(CACHE_DIR, 'index.json')
+export const META_PATH = join(CACHE_DIR, 'meta.json')
+export const LAYER_TTL_MS = {
+  curated: 30 * 60_000,
+  githubIncremental: 15 * 60_000,
+  githubFull: 24 * 3600_000,
+}
+
+export function isLayerFresh(meta, layer, now = Date.now()) {
+  const at = meta?.layers?.[layer]?.at
+  if (typeof at !== 'number') return false
+  return now - at < LAYER_TTL_MS[layer]
+}
+
+export function ensureCacheDir() {
+  mkdirSync(CACHE_DIR, { recursive: true })
+}

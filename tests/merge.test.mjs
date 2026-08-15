@@ -3,6 +3,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { normalizeLanshu, normalizeAwesome, normalizeDshso, normalizeGithub, mergePlugins } from '../scripts/build-index.mjs'
+import { isLayerFresh, LAYER_TTL_MS } from '../scripts/build-index.mjs'
 
 const load = (f) => JSON.parse(readFileSync(new URL(`./fixtures/${f}`, import.meta.url), 'utf8'))
 
@@ -33,4 +34,14 @@ test('mergePlugins 同 repo 多源合并：sources 累积、描述取最全、ev
   assert.equal(merged[0].description.zh, '实时令牌统计。')
   assert.equal(merged[0].evidence.level, 'CURATED')
   assert.equal(merged[0].installHint, 'unknown')
+})
+
+test('isLayerFresh 按层 TTL 判断', () => {
+  const now = Date.now()
+  const meta = { layers: { curated: { at: now - 10 * 60_000 } } }
+  assert.equal(isLayerFresh(meta, 'curated', now), true)      // 10min < 30min
+  const stale = { layers: { curated: { at: now - 40 * 60_000 } } }
+  assert.equal(isLayerFresh(stale, 'curated', now), false)    // 40min > 30min
+  assert.equal(isLayerFresh({ layers: {} }, 'curated', now), false) // 无记录视为过期
+  assert.equal(LAYER_TTL_MS.curated, 30 * 60_000)
 })
