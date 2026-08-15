@@ -2,6 +2,9 @@
 // 四源规范化与统一索引合并（纯函数；CLI 入口在 Task 6 追加）
 
 const EVIDENCE_RANK = { LISTED: 4, CURATED: 3, INDEXED: 2, TOPIC: 1, TOPIC_ONLY: 0 }
+// 描述来源优先级：手写双语源（岚叔/awesome）优先于聚合源（dsh.so）与自动抓取（github）
+const DESC_PRIORITY = { lanshu: 3, awesome: 2, dshso: 1, github: 0 }
+const hasText = (d) => Boolean(d && ((d.zh && d.zh.length > 0) || (d.en && d.en.length > 0)))
 
 function entry(seed) {
   return {
@@ -95,10 +98,12 @@ export function mergePlugins(entries) {
     cur.sources = [...new Set([...cur.sources, ...e.sources])]
     cur.evidence =
       EVIDENCE_RANK[e.evidence.level] > EVIDENCE_RANK[cur.evidence.level] ? e.evidence : cur.evidence
-    if (e.description.zh && e.description.zh.length > (cur.description.zh ?? '').length) {
-      cur.description = e.description
-    } else if (!cur.description.en && e.description.en) {
-      cur.description = { ...cur.description, en: e.description.en }
+    if (hasText(e.description)) {
+      const curPriority = DESC_PRIORITY[cur.sources[0]] ?? 0
+      const ePriority = DESC_PRIORITY[e.sources[0]] ?? 0
+      if (ePriority > curPriority || !hasText(cur.description)) {
+        cur.description = e.description
+      }
     }
     if (e.stars > cur.stars) cur.stars = e.stars
     if (e.pushedAt > cur.pushedAt) cur.pushedAt = e.pushedAt
