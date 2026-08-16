@@ -1,0 +1,6 @@
+# find-dsh-plugins bundle patch — 使本 skill 包可被 `dsh plugin add` 安装并激活。
+# id   = Cordis 插件 id
+# name = 包名（npm 发布后为 find-dsh-plugins；GitHub 安装时解析为 JazzuLu/find-dsh-plugins）
+- insert:
+    - id: find-dsh-plugins
+      name: find-dsh-plugins

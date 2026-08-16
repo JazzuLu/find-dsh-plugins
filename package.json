@@ -1,9 +1,21 @@
 {
   "name": "find-dsh-plugins",
   "version": "0.1.0",
-  "private": true,
   "type": "module",
   "description": "对话式查找 DSH 插件的增强版 skill：语义检索 × 四源聚合 × 安全审计",
+  "files": [
+    "SKILL.md",
+    "scripts",
+    "references",
+    "README.md",
+    "LICENSE",
+    "cordis.patch.yml"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
   "scripts": {
     "test": "node --test"
   },
