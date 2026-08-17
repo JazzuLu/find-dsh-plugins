@@ -17,6 +17,20 @@
 
 ## 快速开始
 
+### 方式 1：通过 Skills CLI 安装（推荐，支持各类 Agent）
+
+可直接通过 [skills.sh](https://skills.sh) 官方 CLI 一键安装到你的 AI Agent 环境（Claude Code, Cursor, Codex, Antigravity 等）：
+
+```sh
+# 项目级安装
+npx skills add JazzuLu/find-dsh-plugins
+
+# 或全局安装（对当前用户的所有项目生效）
+npx skills add JazzuLu/find-dsh-plugins -g
+```
+
+### 方式 2：手动复制到 DSH 目录
+
 ```sh
 # 1. 复制 skill 目录（全局生效）
 mkdir -p ~/.dsh/skills && cp -r find-dsh-plugins ~/.dsh/skills/
