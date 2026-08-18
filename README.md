@@ -4,6 +4,8 @@
 [![License](https://img.shields.io/github/license/JazzuLu/find-dsh-plugins)](LICENSE)
 [![Stars](https://img.shields.io/github/stars/JazzuLu/find-dsh-plugins)](https://github.com/JazzuLu/find-dsh-plugins)
 
+中文 | [English](README.en.md)
+
 **对话式查找 DeepSeek Harness 插件的增强版 skill —— 语义检索 × 四源聚合 × 安全审计。**
 
 问一句"有没有能统计 token 用量的插件？"，Agent 检索四源统一索引、语义精排、

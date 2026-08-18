@@ -8,6 +8,7 @@
     "scripts",
     "references",
     "README.md",
+    "README.en.md",
     "LICENSE",
     "cordis.patch.yml",
     "assets"
