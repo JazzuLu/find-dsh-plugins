@@ -29,17 +29,24 @@ npx skills add JazzuLu/find-dsh-plugins
 npx skills add JazzuLu/find-dsh-plugins -g
 ```
 
-### 方式 2：手动复制到 DSH 目录
+### 方式 2：手动复制到 DSH 目录（DSH 专用，免重启）
 
 ```sh
-# 1. 复制 skill 目录（全局生效）
-mkdir -p ~/.dsh/skills && cp -r find-dsh-plugins ~/.dsh/skills/
+# 1. 复制 skill 运行目录（仅 AI 运行所需文件：指令 + 脚本 + 参考）
+mkdir -p ~/.dsh/skills/find-dsh-plugins
+cp -r SKILL.md scripts references ~/.dsh/skills/find-dsh-plugins/
 
 # 2. 新会话（或当前会话等待 watcher 加载）
 # 3. 直接对话：
 #    "有没有能统计 token 用量的插件？"
 #    "帮我装个 SSH 远程运维面板"
 #    "生态里有什么好玩的 UI 增强插件？"
+```
+
+### 方式 3：bundle 安装（DSH，需重启 dsh web）
+
+```sh
+dsh plugin --profile web add github:JazzuLu/find-dsh-plugins
 ```
 
 ## 使用示例

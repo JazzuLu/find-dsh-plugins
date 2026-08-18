@@ -4,6 +4,11 @@ description: >
   用户想给 DeepSeek Harness 找插件时使用：「有没有插件能……」「帮我装个 XX」
   「生态里有什么好玩的」。语义检索四源聚合 + 安全审计 + 安装验证。
   只负责找和装；开发新插件不归本 skill 管。
+license: BSD-3-Clause
+compatibility: Requires Node.js >= 22 and network access to the four registries.
+metadata:
+  author: JazzuLu
+  version: "0.1.0"
 ---
 
 # 找插件、装插件
@@ -15,15 +20,16 @@ description: >
 
 ## Step 1：检索
 
-运行：
+运行（相对本 skill 目录）：
 
 ```sh
-node <本 skill 目录>/scripts/search.mjs "<需求描述>" --top 30
+node scripts/search.mjs "<需求描述>" --top 30
 ```
 
 脚本自动检查索引新鲜度并同步刷新（curated 源 30 分钟、GitHub 增量 15 分钟、全量每日）。
 输出包含候选名称、stars、证据级别、中英文描述、来源。数据源全部失败时脚本会提示
-索引可能过期，照常输出旧索引候选并告知用户。
+索引可能过期，照常输出旧索引候选并告知用户。无候选时先换一组同义词再试一次，
+仍为空才判定"生态里没有"。
 
 ## Step 2：LLM 语义精排
 
@@ -48,10 +54,12 @@ node <本 skill 目录>/scripts/search.mjs "<需求描述>" --top 30
 
 风险标记规则：脚本审计为 high、或 evidence 为拦截/拒绝级（岚叔 API 的
 screening/attention 字段命中）时，必须标注「风险：<原因>」且给出替代建议。
+完全没有匹配时，给出引导话术示例：「生态里暂时没找到完全对得上的，最接近的是
+<候选>；也可以换个说法描述需求，或让我用 make-dsh-plugin 现写一个。」
 
 ## Step 4：用户拍板
 
-停下来等用户选择。用户点名某插件时，用 `node <本 skill 目录>/scripts/audit.mjs <owner/repo>`
+停下来等用户选择。用户点名某插件时，用 `node scripts/audit.mjs <owner/repo>`
 核对安全后进入 Step 5。
 
 ## Step 5：安装与验证
@@ -66,6 +74,6 @@ screening/attention 字段命中）时，必须标注「风险：<原因>」且�
 
 ## 降级策略
 
-- 无候选匹配：直说没找到，建议换描述词，或转 make-dsh-plugin 现写一个。
+- 无候选匹配：直说没找到，换描述词重试一次，仍无则转 make-dsh-plugin 现写。
 - 用户点名插件已下架/不可装：说明原因，给最接近的替代候选。
 - GitHub 限流：脚本会自动回退到缓存索引并提示。
