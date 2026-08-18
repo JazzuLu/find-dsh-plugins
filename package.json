@@ -9,7 +9,8 @@
     "references",
     "README.md",
     "LICENSE",
-    "cordis.patch.yml"
+    "cordis.patch.yml",
+    "assets"
   ],
   "dsh": {
     "bundle": {
